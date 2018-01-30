@@ -2,6 +2,8 @@ package searchclient;
 
 import java.util.ArrayDeque;
 import java.util.HashSet;
+import java.util.PriorityQueue;
+import java.util.Stack;
 
 import searchclient.Memory;
 import searchclient.NotImplementedException;
@@ -93,34 +95,41 @@ public abstract class Strategy {
 	}
 
 	public static class StrategyDFS extends Strategy {
+		private Stack<Node> frontier;
+		private HashSet<Node> frontierSet;
+		
 		public StrategyDFS() {
 			super();
-			throw new NotImplementedException();
+			frontier = new Stack<>();
+			frontierSet = new HashSet<>();
 		}
 
 		@Override
 		public Node getAndRemoveLeaf() {
-			throw new NotImplementedException();
+			Node n = frontier.pop();
+			frontierSet.remove(n);
+			return n;
 		}
 
 		@Override
 		public void addToFrontier(Node n) {
-			throw new NotImplementedException();
+			frontier.push(n);
+			frontierSet.add(n);
 		}
 
 		@Override
 		public int countFrontier() {
-			throw new NotImplementedException();
+			return frontier.size();
 		}
 
 		@Override
 		public boolean frontierIsEmpty() {
-			throw new NotImplementedException();
+			return frontier.isEmpty();
 		}
 
 		@Override
 		public boolean inFrontier(Node n) {
-			throw new NotImplementedException();
+			return frontierSet.contains(n);
 		}
 
 		@Override
@@ -132,7 +141,9 @@ public abstract class Strategy {
 	// Ex 3: Best-first Search uses a priority queue (Java contains no implementation of a Heap data structure)
 	public static class StrategyBestFirst extends Strategy {
 		private Heuristic heuristic;
-
+		private PriorityQueue<Node> frontier = new PriorityQueue<>();
+		private HashSet<Node> frontierSet = new HashSet<>();
+		
 		public StrategyBestFirst(Heuristic h) {
 			super();
 			this.heuristic = h;
@@ -141,7 +152,9 @@ public abstract class Strategy {
 
 		@Override
 		public Node getAndRemoveLeaf() {
-			throw new NotImplementedException();
+			Node n = frontier.poll();
+			frontierSet.remove(n);
+			return n;
 		}
 
 		@Override
