@@ -159,22 +159,23 @@ public abstract class Strategy {
 
 		@Override
 		public void addToFrontier(Node n) {
-			throw new NotImplementedException();
+			frontier.offer(n);
+			frontierSet.add(n);
 		}
 
 		@Override
 		public int countFrontier() {
-			throw new NotImplementedException();
+			return frontier.size();
 		}
 
 		@Override
 		public boolean frontierIsEmpty() {
-			throw new NotImplementedException();
+			return frontier.isEmpty();
 		}
 
 		@Override
 		public boolean inFrontier(Node n) {
-			throw new NotImplementedException();
+			return frontier.contains(n);
 		}
 
 		@Override
