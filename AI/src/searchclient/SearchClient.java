@@ -11,7 +11,11 @@ import searchclient.Heuristic.*;
 
 public class SearchClient {
 	public Node initialState;
-
+	private int MAX_ROW;
+	private int MAX_COL;
+	private boolean[][] walls;
+	private char[][] goals;
+	
 	public SearchClient(BufferedReader serverMessages) throws Exception {
 		// Read lines specifying colors
 		String line = serverMessages.readLine();
@@ -19,17 +23,32 @@ public class SearchClient {
 			System.err.println("Error, client does not support colors.");
 			System.exit(1);
 		}
-
-		int row = 0;
+		
+		//Max columns and rows
+		MAX_COL = line.length();	
+		LinkedList<String> lines = new LinkedList<>();
+		while(!line.equals("")){
+			lines.add(line);
+			line = serverMessages.readLine();
+		}	
+		MAX_ROW = lines.size();
+		
+		//Initialize arrays
+		walls = new boolean[MAX_ROW][MAX_COL];
+		goals = new char[MAX_ROW][MAX_COL];
+				
 		boolean agentFound = false;
-		this.initialState = new Node(null);
 
-		while (!line.equals("")) {
+		this.initialState = new Node(null, this);
+
+		for (int row = 0; row < lines.size(); row++) {
+			line = lines.get(row);
+			
 			for (int col = 0; col < line.length(); col++) {
 				char chr = line.charAt(col);
 
 				if (chr == '+') { // Wall.
-					this.initialState.walls[row][col] = true;
+					walls[row][col] = true;
 				} else if ('0' <= chr && chr <= '9') { // Agent.
 					if (agentFound) {
 						System.err.println("Error, not a single agent level");
@@ -41,7 +60,7 @@ public class SearchClient {
 				} else if ('A' <= chr && chr <= 'Z') { // Box.
 					this.initialState.boxes[row][col] = chr;
 				} else if ('a' <= chr && chr <= 'z') { // Goal.
-					this.initialState.goals[row][col] = chr;
+					goals[row][col] = chr;
 				} else if (chr == ' ') {
 					// Free space.
 				} else {
@@ -49,8 +68,6 @@ public class SearchClient {
 					System.exit(1);
 				}
 			}
-			line = serverMessages.readLine();
-			row++;
 		}
 	}
 
@@ -87,7 +104,7 @@ public class SearchClient {
 
 	public static void main(String[] args) throws Exception {
 		BufferedReader serverMessages = new BufferedReader(new InputStreamReader(System.in));
-
+		
 		// Use stderr to print to console
 		System.err.println("SearchClient initializing. I am sending this using the error output stream.");
 
@@ -150,5 +167,21 @@ public class SearchClient {
 				}
 			}
 		}
+	}
+
+	public int getMaxRow() {
+		return MAX_ROW;
+	}
+	
+	public int getMaxCol(){
+		return MAX_COL;
+	}
+	
+	public char[][] getGoals(){
+		return goals;
+	}
+	
+	public boolean[][] getWalls(){
+		return walls;
 	}
 }

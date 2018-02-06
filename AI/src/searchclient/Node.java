@@ -11,9 +11,6 @@ import searchclient.Command.Type;
 public class Node {
 	private static final Random RND = new Random(1);
 
-	public static int MAX_ROW = 70;
-	public static int MAX_COL = 70;
-
 	public int agentRow;
 	public int agentCol;
 
@@ -27,19 +24,20 @@ public class Node {
 	// this.walls[row][col] is true if there's a wall at (row, col)
 	//
 
-	public boolean[][] walls = new boolean[MAX_ROW][MAX_COL];
-	public char[][] boxes = new char[MAX_ROW][MAX_COL];
-	public char[][] goals = new char[MAX_ROW][MAX_COL];
+	public char[][] boxes;
 
 	public Node parent;
 	public Command action;
-
+	
 	private int g;
+	private SearchClient client;
 	
 	private int _hash = 0;
 
-	public Node(Node parent) {
+	public Node(Node parent, SearchClient client) {
 		this.parent = parent;
+		this.client = client;
+		boxes = new char[client.getMaxRow()][client.getMaxCol()];
 		if (parent == null) {
 			this.g = 0;
 		} else {
@@ -56,9 +54,9 @@ public class Node {
 	}
 
 	public boolean isGoalState() {
-		for (int row = 1; row < MAX_ROW - 1; row++) {
-			for (int col = 1; col < MAX_COL - 1; col++) {
-				char g = goals[row][col];
+		for (int row = 1; row < client.getMaxRow() - 1; row++) {
+			for (int col = 1; col < client.getMaxCol() - 1; col++) {
+				char g = client.getGoals()[row][col];
 				char b = Character.toLowerCase(boxes[row][col]);
 				if (g > 0 && b != g) {
 					return false;
@@ -123,7 +121,7 @@ public class Node {
 	}
 
 	private boolean cellIsFree(int row, int col) {
-		return !this.walls[row][col] && this.boxes[row][col] == 0;
+		return !client.getWalls()[row][col] && this.boxes[row][col] == 0;
 	}
 
 	private boolean boxAt(int row, int col) {
@@ -131,11 +129,9 @@ public class Node {
 	}
 
 	private Node ChildNode() {
-		Node copy = new Node(this);
-		for (int row = 0; row < MAX_ROW; row++) {
-			System.arraycopy(this.walls[row], 0, copy.walls[row], 0, MAX_COL);
-			System.arraycopy(this.boxes[row], 0, copy.boxes[row], 0, MAX_COL);
-			System.arraycopy(this.goals[row], 0, copy.goals[row], 0, MAX_COL);
+		Node copy = new Node(this, client);
+		for (int row = 0; row < client.getMaxRow(); row++) {
+			System.arraycopy(this.boxes[row], 0, copy.boxes[row], 0, client.getMaxCol());
 		}
 		return copy;
 	}
@@ -158,8 +154,6 @@ public class Node {
 			result = prime * result + this.agentCol;
 			result = prime * result + this.agentRow;
 			result = prime * result + Arrays.deepHashCode(this.boxes);
-			result = prime * result + Arrays.deepHashCode(this.goals);
-			result = prime * result + Arrays.deepHashCode(this.walls);
 			this._hash = result;
 		}
 		return this._hash;
@@ -178,26 +172,22 @@ public class Node {
 			return false;
 		if (!Arrays.deepEquals(this.boxes, other.boxes))
 			return false;
-		if (!Arrays.deepEquals(this.goals, other.goals))
-			return false;
-		if (!Arrays.deepEquals(this.walls, other.walls))
-			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
 		StringBuilder s = new StringBuilder();
-		for (int row = 0; row < MAX_ROW; row++) {
-			if (!this.walls[row][0]) {
+		for (int row = 0; row < client.getMaxRow(); row++) {
+			if (!client.getWalls()[row][0]) {
 				break;
 			}
-			for (int col = 0; col < MAX_COL; col++) {
+			for (int col = 0; col < client.getMaxCol(); col++) {
 				if (this.boxes[row][col] > 0) {
 					s.append(this.boxes[row][col]);
-				} else if (this.goals[row][col] > 0) {
-					s.append(this.goals[row][col]);
-				} else if (this.walls[row][col]) {
+				} else if (client.getGoals()[row][col] > 0) {
+					s.append(client.getGoals()[row][col]);
+				} else if (client.getWalls()[row][col]) {
 					s.append("+");
 				} else if (row == this.agentRow && col == this.agentCol) {
 					s.append("0");
