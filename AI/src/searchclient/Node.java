@@ -9,7 +9,7 @@ import java.util.Random;
 import searchclient.Command.Type;
 
 public class Node {
-	private static final Random RND = new Random(2);
+	private static final Random RND = new Random(1);
 
 	public int agentRow;
 	public int agentCol;
