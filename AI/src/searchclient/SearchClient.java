@@ -1,9 +1,15 @@
 package searchclient;
 
+import java.awt.Point;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import searchclient.Heuristic.AStar;
 import searchclient.Heuristic.Greedy;
@@ -17,7 +23,9 @@ public class SearchClient {
 	private int MAX_ROW;
 	private int MAX_COL;
 	private boolean[][] walls;
-	private char[][] goals;
+	private Goal[][] goals;
+	private List<Goal> goalList;
+	private Map<Character, ArrayList<Goal>> goalMap;
 	
 	public SearchClient(BufferedReader serverMessages) throws Exception {
 		// Read lines specifying colors
@@ -38,12 +46,13 @@ public class SearchClient {
 		
 		//Initialize arrays
 		walls = new boolean[MAX_ROW][MAX_COL];
-		goals = new char[MAX_ROW][MAX_COL];
-				
+		goals = new Goal[MAX_ROW][MAX_COL];
+		goalList = new ArrayList<Goal>();		
+		goalMap = new HashMap<Character, ArrayList<Goal>>();
 		boolean agentFound = false;
 
 		this.initialState = new Node(null, this);
-
+		
 		for (int row = 0; row < lines.size(); row++) {
 			line = lines.get(row);
 			
@@ -61,9 +70,16 @@ public class SearchClient {
 					this.initialState.agentRow = row;
 					this.initialState.agentCol = col;
 				} else if ('A' <= chr && chr <= 'Z') { // Box.
-					this.initialState.boxes[row][col] = chr;
+					this.initialState.boxes[row][col] = new Box(chr);
 				} else if ('a' <= chr && chr <= 'z') { // Goal.
-					goals[row][col] = chr;
+					Goal goal = new Goal(chr, row, col);
+					goalList.add(goal);
+					goals[row][col] = goal;
+					
+					if (!goalMap.containsKey(chr))
+						goalMap.put(chr, new ArrayList<Goal>());
+					goalMap.get(chr).add(goal);
+					
 				} else if (chr == ' ') {
 					// Free space.
 				} else {
@@ -90,15 +106,25 @@ public class SearchClient {
 			}
 
 			Node leafNode = strategy.getAndRemoveLeaf();
-
+			
 			if (leafNode.isGoalState()) {
 				return leafNode.extractPlan();
 			}
-
+			
+//			System.err.println("-------------------");
+//			System.err.println("Agent: " + leafNode.agentRow + "," + leafNode.agentCol);
+//			//System.err.println("NBox: " + leafNode.nearestBoxRow + "," + leafNode.nearestBoxCol);
+//			System.err.println("Agent price: f: " + (leafNode.h() + leafNode.g()) + ", g: " + leafNode.g() + ", h: " + leafNode.h());
+			
 			strategy.addToExplored(leafNode);
+//			System.err.println("Frontier: " + strategy.countFrontier());
+//			System.err.println("Exploired: " + strategy.countExplored());
 			for (Node n : leafNode.getExpandedNodes()) { // The list of expanded nodes is shuffled randomly; see Node.java.
 				if (!strategy.isExplored(n) && !strategy.inFrontier(n)) {
+					n.calculateDistanceToGoal();
 					strategy.addToFrontier(n);
+//					System.err.println("Add to frontier: " + n.agentRow + "," + n.agentCol);
+//					System.err.println("Price for frontier: " + n.getTotalDistanceToGoals());
 				}
 			}
 			iterations++;
@@ -180,8 +206,16 @@ public class SearchClient {
 		return MAX_COL;
 	}
 	
-	public char[][] getGoals(){
+	public Goal[][] getGoals(){
 		return goals;
+	}
+	
+	public List<Goal> getGoalList(){
+		return goalList;
+	}
+	
+	public Map<Character, ArrayList<Goal>> getGoalMap(){
+		return goalMap;
 	}
 	
 	public boolean[][] getWalls(){

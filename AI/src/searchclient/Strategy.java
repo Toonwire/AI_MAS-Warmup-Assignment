@@ -100,8 +100,8 @@ public abstract class Strategy {
 		
 		public StrategyDFS() {
 			super();
-			frontier = new Stack<>();
-			frontierSet = new HashSet<>();
+			frontier = new Stack<Node>();
+			frontierSet = new HashSet<Node>();
 		}
 
 		@Override
@@ -141,13 +141,14 @@ public abstract class Strategy {
 	// Ex 3: Best-first Search uses a priority queue (Java contains no implementation of a Heap data structure)
 	public static class StrategyBestFirst extends Strategy {
 		private Heuristic heuristic;
-		private PriorityQueue<Node> frontier = new PriorityQueue<>();
-		private HashSet<Node> frontierSet = new HashSet<>();
+		private PriorityQueue<Node> frontier;
+		private HashSet<Node> frontierSet;
 		
 		public StrategyBestFirst(Heuristic h) {
 			super();
 			this.heuristic = h;
-			throw new NotImplementedException();
+			frontier = new PriorityQueue<Node>(100000, this.heuristic);
+			frontierSet = new HashSet<Node>();
 		}
 
 		@Override
@@ -175,7 +176,7 @@ public abstract class Strategy {
 
 		@Override
 		public boolean inFrontier(Node n) {
-			return frontier.contains(n);
+			return frontierSet.contains(n);
 		}
 
 		@Override
