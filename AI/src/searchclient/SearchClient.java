@@ -41,6 +41,7 @@ public class SearchClient {
 		while(!line.equals("")){
 			lines.add(line);
 			line = serverMessages.readLine();
+			MAX_COL = line.length > MAX_COL ? line.length() : MAX_COL;
 		}	
 		MAX_ROW = lines.size();
 		
